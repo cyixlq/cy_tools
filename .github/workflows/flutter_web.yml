@@ -4,30 +4,23 @@ on:
     branches:
       - master
 jobs:
-  build:
-    name: Build Web
-    env:
-      my_secret: ${{secrets.commit_secret}}
-    runs-on: ubuntu-latest
+  web_build_and_deploy:
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: subosito/flutter-action@v1
+      - uses: actions/checkout@v2.3.1
+      - uses: subosito/flutter-action@v2
         with:
-          channel: 'dev'
-      - run: flutter config --enable-web
-      - run: flutter pub get
-      - run: flutter build web --release
-      - run: |
-          cd build/web
-          git init
-          # 改成你的提交邮箱
-          git config --global user.email 2421597157@qq.com
-          # 改成你的提交用户名
-          git config --global user.name cyixlq
-          git status
-          # 更改此远程URL，例如查看您的远程URL是 https://github.com/onatcipli/flutter_web.git 然后改成以下内容
-          git remote add origin https://${{secrets.commit_secret}}@github.com:cyixlq/cy_tools.git
-          git checkout -b gh-pages
-          git add --all
-          git commit -m "update"
-          git push origin gh-pages -f
+          flutter-version: '3.3.2'
+          channel: 'stable'
+          architecture: x64
+      - name: "Web Build 🔧"
+        run: |
+          flutter pub get
+          flutter build web
+      - name: "Web Deploy 🚀"
+          # https://github.com/JamesIves/github-pages-deploy-action
+        uses: JamesIves/github-pages-deploy-action@4.0.0
+        with:
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          branch: gh-pages
+          folder: build/web
